@@ -1,0 +1,110 @@
+Caleb James Russell
+Tuum.com
+Test Task for Service Desk Engineer
+26-August-2024
+
+
+
+1.
+When I notice an incident is affecting production environment, or marked a "critical" incident nonetheless, I approach it with immediate attention to ensure there's not a service disruption for customers. 
+First, I come to understand how the PREPARING status is assigned and why it should be a different status. Because the PREPARING status is meant to wait for additional data, I would look in logs for if there was any error / outage happening at the time that the loan was created. This can point to missing data that the loan offer needs to leave the PREPARING status and continue as valid. For example, the API calls in logs.csv show human-readable data.
+It is also important in incidents to consider if there are a pattern of repetitive behaviors that can be traced to a single API that Tuum is using.
+
+If available I would use a staging / test environment to see if I can change the problematic loan offer in a sandbox without needing to worry about harming live data.
+I think having detailed logs helps me understand the incident better - for example, I have used a service Graylog to trace the back-end of a error.
+I would also like to have access to query (select) the loan databases to see the data I am concerned about in the incident. 
+Any other additional information I would need, I imagine would come from the context of a development team who updates the Tuum services.
+	
+Speaking with the customer, I would acknowledge their incident immediately because we have a measured response time for our SLA. I would also adhere to the resolution SLA and keep the customer updated on its progress. The customer should also get an answer from Service Desk about what caused this incident. I would then document any solution to the greatest technical extent so we can mitigate the incident / group it with similar findings.
+	
+
+
+
+
+2. 
+As understood from your email instructions I will refer to logs.csv for Task 2. I used CTRL+F to search logs.csv for entries containing ID-10070.
+The first failing / warning log entry containing ID-10070 should help me trace back where the issue stems from.
+First, I am searching the logs for (ID-10070).
+
+Log #1270:
+	00:00.9,ERROR,payment-router-api,5919e61b796cc400,931a9b5600f1c62f,Error sending incoming transfer-ID-10070
+There was an error with the payment router API about sending the incoming transfer of the same payment ID, 10070. 
+Before this, 
+	Before that log entry, there is a warning entry about the same payment-router-api:
+	00:00.7,WARN,payment-router-api,62bdb512a68d3914,62bdb512a68d3914,Duration of ee.lending.job.dao.ModularBatchDao.isRunning was 101 ms
+	It looks like before payment ID-10070 
+	
+
+### **3. Incident: Payment Initiator Cannot Confirm Manual Payment**
+
+#### **Steps to Resolve the Issue:**
+
+1. **Review Privileges:** From the provided information, the PAYMENT_INITIATOR role lacks the `CONFIRM_PAYMENT` privilege, unlike the PAYMENT_SPECIALIST role.
+
+2. **SQL Statements:**
+   - **Check Existing Privileges:**
+     ```sql
+     SELECT * FROM Role_privilege WHERE Role_code = 'PAYMENT_INITIATOR';
+     ```
+
+   - **Add Missing Privilege:** 
+     ```sql
+     INSERT INTO Role_privilege (Role_code, Privilege_name)
+     VALUES ('PAYMENT_INITIATOR', 'CONFIRM_PAYMENT');
+     ```
+
+3. **Test the Changes:** After adding the required privilege, test to ensure that users with the PAYMENT_INITIATOR role can now confirm manual payments as expected.
+
+#### **Additional Information Needed:**
+
+- Confirmation from the customer if additional privileges should be added or if there are any restrictions on modifying roles.
+
+#### **Communication with the Customer:**
+
+- **Initial Response:** Inform the customer that the issue appears to be related to role privileges and that you are investigating.
+- **Update:** Once the missing privilege is identified, explain the proposed change and seek approval if needed.
+- **Resolution:** Confirm with the customer once the privilege is added and the issue is resolved.
+
+---
+
+### **4. Issue: Creating Account Balance and Retrieving Information via API**
+
+#### **Steps to Create Account Balance and Retrieve Information:**
+
+1. **API Endpoint to Create Account Balance:**
+   - Use the `POST /accounts/{accountId}/balances` endpoint. Refer to the Tuum developer portal for specific API documentation and parameters required.
+
+2. **Create Account Balances for Denmark and Sweden:**
+   - Make two API requests to create balances for the Denmark (DKK) and Sweden (SEK) currencies:
+     ```json
+     {
+       "currency": "DKK",
+       "balance": 1000.00
+     }
+     ```
+     ```json
+     {
+       "currency": "SEK",
+       "balance": 1000.00
+     }
+     ```
+
+3. **Retrieve Account Type:**
+   - Use the `GET /accounts/{accountId}` endpoint to retrieve details of the account. The account type can be found in the response attributes under `accountType`.
+
+4. **Get Customer Residency Information:**
+   - Use the `GET /customers/{customerId}` endpoint to fetch customer details. The residency information will be available in the response under an attribute like `residency`.
+
+#### **Additional Information Needed:**
+
+- API access keys and any necessary authorization tokens for making API requests.
+- Clarification on any specific configurations or data requirements for creating account balances.
+
+#### **Communication with the Customer:**
+
+- **Informing Steps:** Provide clear instructions and details on how the API endpoints were used, and share the response data if needed.
+- **Follow-Up:** Confirm successful creation of account balances and retrieval of requested information.
+
+---
+
+These steps outline how to approach each scenario in the test task for a Service Desk Engineer role. Make sure to provide clear communication with customers throughout each process, adhere to SLAs, and document all findings and resolutions thoroughly.
